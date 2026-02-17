@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <script>
+      function oidcRedirect() {
+        const roomname = encodeURIComponent(window.location.pathname.substring(1));
+        window.location = `/oidc/auth?room=${roomname}`;
+
+        try {
+          document.all.react.remove();
+        } catch (e) {
+          // React element may not exist yet
+        }
+      }
+
+      function handleButton(button) {
+        let labelKey;
+        try {
+          labelKey = Object.values(button)[0].return.memoizedProps.labelKey;
+        } catch (e) {
+          // labelKey not available on this element
+        }
+
+        if (labelKey === "dialog.login") {
+          oidcRedirect();
+        } else if (labelKey === "dialog.IamHost") {
+          button.onclick = oidcRedirect;
+        }
+      }
+
+      // Watch for Jitsi's login modal and intercept it.
+      function interceptLoginRequest() {
+        const observer = new MutationObserver((mutationsList, observer) => {
+          for (let mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+              const button = document.getElementById("modal-dialog-ok-button");
+              if (button) {
+                handleButton(button);
+                observer.disconnect();
+                break;
+              }
+            }
+          }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+
+      try {
+        interceptLoginRequest();
+      } catch (e) {
+        // Silently fail -- Jitsi will show its default login UI
+      }
+    </script>
+</head>
+</html>

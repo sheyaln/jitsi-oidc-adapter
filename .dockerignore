@@ -1,0 +1,11 @@
+.git
+.gitignore
+.dockerignore
+*.md
+docs/
+.github/
+flask_session/
+*.log
+.env
+venv/
+__pycache__/
